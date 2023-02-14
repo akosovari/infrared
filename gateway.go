@@ -427,7 +427,7 @@ func (gateway *Gateway) serve(conn Conn, addr string, realip net.Addr) (rerr err
 		}
 		// If under attack drop connections to servers where AllowCracked true
 		if gateway.underAttack && session.config.AllowCracked {
-			return nil
+			return err
 		}
 
 		loginStart, err := login.UnmarshalServerBoundLoginStart(session.loginPacket)
