@@ -425,6 +425,10 @@ func (gateway *Gateway) serve(conn Conn, addr string, realip net.Addr) (rerr err
 		if err != nil {
 			return err
 		}
+		// If under attack drop connections to servers where AllowCracked true
+		if gateway.underAttack && session.config.AllowCracked {
+			return nil
+		}
 
 		loginStart, err := login.UnmarshalServerBoundLoginStart(session.loginPacket)
 		if err != nil {
@@ -445,7 +449,6 @@ func (gateway *Gateway) serve(conn Conn, addr string, realip net.Addr) (rerr err
 					return err
 				}
 			}
-		}
 		handshakeCount.With(prometheus.Labels{"type": "login", "host": session.serverAddress, "country": session.country}).Inc()
 		_ = conn.SetDeadline(time.Time{})
 		if err := proxy.handleLoginConnection(conn, session); err != nil {
