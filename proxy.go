@@ -148,10 +148,12 @@ func (proxy *Proxy) handleLoginConnection(conn Conn, session Session) error {
 
 	rconn, err := dialer.Dial(proxyTo)
 	if err != nil {
-		log.Printf("[i] %s did not respond to ping; is the target offline?", proxyTo)
-		proxy.cacheOnlineStatus = false
-		proxy.cacheOnlineTime = time.Now()
-		return proxy.handleLoginRequest(conn, session)
+		if time.Now().Sub(proxy.cacheOnlineTime) > 30*time.Second {
+			proxy.cacheOnlineStatus = false
+			log.Printf("[i] %s did not respond to ping; is the target offline?", proxyTo)
+			proxy.cacheOnlineTime = time.Now()
+			return proxy.handleLoginRequest(conn, session)
+		}
 	}
 	proxy.cacheOnlineStatus = true
 	proxy.cacheOnlineTime = time.Now()
